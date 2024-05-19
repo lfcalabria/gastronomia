@@ -82,7 +82,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'cursopython_dbescola',
-        'HOST': 'cursopython.dev.br',
+        'HOST': 'localhost',
         'PORT': '3306',
         'USER': 'cursopython_admin',
         'PASSWORD': 'Curso+2024',

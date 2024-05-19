@@ -19,11 +19,15 @@ class ReceitaIngrediente(Base):
                                      )
 
     class Meta:
+        verbose_name = 'Ingrediente da Receita'
+        verbose_name_plural = 'Ingredientes da Receita'
         unique_together = ('id_receita', 'id_produto')
         indexes = (
             models.Index(fields=('id_receita',)),
             models.Index(fields=('id_produto',)),
         )
+        db_table = 'receitaingrediente'
+
 
 class TipoCulinaria(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
@@ -34,6 +38,7 @@ class TipoCulinaria(Base):
         indexes = (
             models.Index(fields=('nome',)),
         )
+        db_table = 'tipoculinaria'
 
 
 class Receita(Base):
@@ -50,6 +55,7 @@ class Receita(Base):
             models.Index(fields=('nome',)),
             models.Index(fields=('id_tipo',)),
         )
+        db_table = 'receita'
 
 
 class UnidadeMedida(Base):
@@ -64,6 +70,7 @@ class UnidadeMedida(Base):
         indexes = (
             models.Index(fields=('sigla',)),
         )
+        db_table = 'unidademedida'
 
 class Produto(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
@@ -80,6 +87,7 @@ class Produto(Base):
             models.Index(fields=('nome',)),
             models.Index(fields=('id_unidade',)),
         )
+        db_table = 'produto'
 
 
 class Preco(Base):
@@ -97,6 +105,7 @@ class Preco(Base):
         indexes = (
             models.Index(fields=('id_produto',)),
         )
+        db_table = 'preco'
 
 
 class Professor(Base):
@@ -109,6 +118,7 @@ class Professor(Base):
         indexes = (
             models.Index(fields=('nome',)),
         )
+        db_table = 'professor'
 
 
 class Disciplina(Base):
@@ -121,6 +131,7 @@ class Disciplina(Base):
         indexes = (
             models.Index(fields=('nome',)),
         )
+        db_table = 'disciplina'
 
 
 class Fornecedor(Base):
@@ -133,6 +144,7 @@ class Fornecedor(Base):
         indexes = (
             models.Index(fields=('nome',)),
         )
+        db_table = 'fornecedor'
 
 
 class NotaFiscal(Base):
@@ -151,12 +163,13 @@ class NotaFiscal(Base):
         indexes = (
             models.Index(fields=('id_fornecedor',)),
         )
+        db_table = 'notafiscal'
 
 
 class Laboratorio(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Nome do laboratório')
-    localização = models.CharField(max_length=100, blank=False, unique=True, null=False,
+    localizacao = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Localização do laboratório')
 
     class Meta:
@@ -165,6 +178,7 @@ class Laboratorio(Base):
         indexes = (
             models.Index(fields=('nome',)),
         )
+        db_table = 'laboratorio'
 
 
 class AulaReceita(Base):
@@ -183,6 +197,7 @@ class AulaReceita(Base):
             models.Index(fields=('id_aula',)),
             models.Index(fields=('id_receita',)),
         )
+        db_table = 'aulareceita'
 
 
 class Aula(Base):
@@ -215,6 +230,7 @@ class Aula(Base):
             models.Index(fields=('id_professor',)),
             models.Index(fields=('id_laboratorio',)),
         )
+        db_table = 'aula'
 
 
 class Movimento(Base):
@@ -236,3 +252,4 @@ class Movimento(Base):
         indexes = (
             models.Index(fields=('id_produto',)),
         )
+        db_table = 'movimento'
