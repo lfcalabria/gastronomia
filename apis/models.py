@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Base(models.Model):
     data_criacao = models.DateTimeField(auto_now_add=True, db_comment='Momento da criação do dado')
     data_ateracao = models.DateTimeField(auto_now=True, db_comment='momento da atualização do dado')
@@ -10,21 +11,24 @@ class Base(models.Model):
 
 
 class ReceitaIngrediente(Base):
-    id_receita = models.ForeignKey('Receita', on_delete=models.RESTRICT,
-                                   db_comment='ligacao com a tabela de receita')
-    id_produto = models.ForeignKey('Produto', on_delete=models.RESTRICT,
-                                   db_comment='ligacao com a tabela de produto')
-    quantidade = models.DecimalField(max_digits=9, decimal_places=2,
+    receita = models.ForeignKey('Receita', on_delete=models.RESTRICT,
+                                db_comment='ligação com a tabela de receita')
+    produto = models.ForeignKey('Produto', on_delete=models.RESTRICT,
+                                db_comment='ligação com a tabela de produto')
+    quantidade = models.DecimalField(max_digits=11, decimal_places=5,
                                      db_comment='quantidade usada na receita por unidade de medida',
                                      )
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + "Receita:" + str(self.receita) + ", Produto:" + str(self.produto)
 
     class Meta:
         verbose_name = 'Ingrediente da Receita'
         verbose_name_plural = 'Ingredientes da Receita'
-        unique_together = ('id_receita', 'id_produto')
+        unique_together = ('receita', 'produto')
         indexes = (
-            models.Index(fields=('id_receita',)),
-            models.Index(fields=('id_produto',)),
+            models.Index(fields=('receita',)),
+            models.Index(fields=('produto',)),
         )
         db_table = 'receitaingrediente'
 
@@ -32,9 +36,13 @@ class ReceitaIngrediente(Base):
 class TipoCulinaria(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Nome do tipo de culinária')
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + self.nome
+
     class Meta:
         verbose_name = 'Tipo de Culinária'
-        verbose_name_plural = 'Turmas'
+        verbose_name_plural = 'Tipos de Culinária'
         indexes = (
             models.Index(fields=('nome',)),
         )
@@ -44,16 +52,21 @@ class TipoCulinaria(Base):
 class Receita(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Nome do tipo de receita')
-    id_tipo = models.ForeignKey(TipoCulinaria, on_delete=models.RESTRICT,
-                                db_comment='ligacao com a tabela de tipo de culinaria')
+    tipo = models.ForeignKey(TipoCulinaria, on_delete=models.RESTRICT,
+                             related_name='tipoculinara',
+                             db_comment='ligacao com a tabela de tipo de culinaria')
     ingredientes = models.ManyToManyField('Produto', through='ReceitaIngrediente')
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + self.nome
+
     class Meta:
         verbose_name = 'Receita'
         verbose_name_plural = 'Receitas'
-        unique_together = ('nome', 'id_tipo')
+        unique_together = ('nome', 'tipo')
         indexes = (
             models.Index(fields=('nome',)),
-            models.Index(fields=('id_tipo',)),
+            models.Index(fields=('tipo',)),
         )
         db_table = 'receita'
 
@@ -64,6 +77,9 @@ class UnidadeMedida(Base):
     descricao = models.CharField(max_length=100, blank=False, null=False,
                                  db_comment='Descrição da unidade de medida')
 
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + str(self.sigla) + ' - ' + str(self.descricao)
+
     class Meta:
         verbose_name = 'Unidade de Medida'
         verbose_name_plural = 'Unidades de Medida'
@@ -72,38 +88,46 @@ class UnidadeMedida(Base):
         )
         db_table = 'unidademedida'
 
+
 class Produto(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Nome do produto')
-    quantidade = models.IntegerField(default=0, db_comment='Quantidade disponível')
-    id_unidade = models.ForeignKey(UnidadeMedida, on_delete=models.RESTRICT,
+    quantidade = models.DecimalField(default=0, max_digits=11, decimal_places=5,
+                                     db_comment='Quantidade disponível')
+    unidade = models.ForeignKey(UnidadeMedida, on_delete=models.RESTRICT,
                                 db_comment='ligação com tabela de unidade de medida')
     receitas = models.ManyToManyField('Receita', through='ReceitaIngrediente')
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + self.nome
 
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
         indexes = (
             models.Index(fields=('nome',)),
-            models.Index(fields=('id_unidade',)),
+            models.Index(fields=('unidade',)),
         )
         db_table = 'produto'
 
 
 class Preco(Base):
-    id_produto = models.ForeignKey(Produto, on_delete=models.RESTRICT,
-                                   db_comment='ligação com tabela de produto')
-    data_cotacao = models.DateField(blank=False, unique=True, null=False,
-                            db_comment='Data Cotação')
+    produto = models.ForeignKey(Produto, on_delete=models.RESTRICT,
+                                db_comment='ligação com tabela de produto')
+    data_cotacao = models.DateField(blank=False, null=False,
+                                    db_comment='Data Cotação')
     valor = models.DecimalField(max_digits=9, decimal_places=2,
                                 db_comment='Valor cotado por unidade de medida',
                                 )
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + "Produto: " + str(self.produto) + ", Data: " + str(self.data_cotacao) + ', Valor R$' + str(self.valor)
 
     class Meta:
         verbose_name = 'Preço'
         verbose_name_plural = 'Preços'
         indexes = (
-            models.Index(fields=('id_produto',)),
+            models.Index(fields=('produto',)),
         )
         db_table = 'preco'
 
@@ -112,9 +136,12 @@ class Professor(Base):
     nome = models.CharField(max_length=100, blank=False, null=False,
                             db_comment='Nome do professor')
 
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + self.nome
+
     class Meta:
         verbose_name = 'Professor'
-        verbose_name_plural = '`Professores`'
+        verbose_name_plural = 'Professores'
         indexes = (
             models.Index(fields=('nome',)),
         )
@@ -125,9 +152,12 @@ class Disciplina(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Nome da disciplina')
 
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + self.nome
+
     class Meta:
         verbose_name = 'Disciplina'
-        verbose_name_plural = '`Disciplinas`'
+        verbose_name_plural = 'Disciplinas'
         indexes = (
             models.Index(fields=('nome',)),
         )
@@ -138,9 +168,12 @@ class Fornecedor(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Nome do fornecedor')
 
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + self.nome
+
     class Meta:
         verbose_name = 'Fornecedor'
-        verbose_name_plural = '`Fornecedores`'
+        verbose_name_plural = 'Fornecedores'
         indexes = (
             models.Index(fields=('nome',)),
         )
@@ -154,14 +187,17 @@ class NotaFiscal(Base):
                                 db_comment='Valor total da nota fiscal',
                                 blank=False, null=False
                                 )
-    id_fornecedor = models.ForeignKey(Fornecedor, on_delete=models.RESTRICT,
+    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.RESTRICT,
                                    db_comment='ligacao com a tabela de fornecedor')
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + "Nota Fiscal: " + str(self.id)
 
     class Meta:
         verbose_name = 'Nota Fiscal'
         verbose_name_plural = 'Notas Fiscais'
         indexes = (
-            models.Index(fields=('id_fornecedor',)),
+            models.Index(fields=('fornecedor',)),
         )
         db_table = 'notafiscal'
 
@@ -170,7 +206,10 @@ class Laboratorio(Base):
     nome = models.CharField(max_length=100, blank=False, unique=True, null=False,
                             db_comment='Nome do laboratório')
     localizacao = models.CharField(max_length=100, blank=False, unique=True, null=False,
-                            db_comment='Localização do laboratório')
+                                   db_comment='Localização do laboratório')
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + self.nome
 
     class Meta:
         verbose_name = 'Laboratório'
@@ -182,20 +221,24 @@ class Laboratorio(Base):
 
 
 class AulaReceita(Base):
-    id_aula = models.ForeignKey('Aula', on_delete=models.RESTRICT,
-                                      db_comment='Ligação com a tabela de aula')
-    id_receita = models.ForeignKey('Receita', on_delete=models.RESTRICT,
-                                      db_comment='Ligação com a tabela de receita')
+    aula = models.ForeignKey('Aula', on_delete=models.RESTRICT,
+                             db_comment='Ligação com a tabela de aula')
+    receita = models.ForeignKey('Receita', on_delete=models.RESTRICT,
+                                db_comment='Ligação com a tabela de receita')
 
-    qtd_receita = models.IntegerField(blank=False, null=False, db_comment='Quantidade de receitas previstas para a aula')
+    qtd_receita = models.IntegerField(blank=False, null=False,
+                                      db_comment='Quantidade de receitas previstas para a aula')
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + "Receita: " + str(self.receita) + ", Aula: " + str(self.aula)
 
     class Meta:
         verbose_name = 'Receita da Aula'
         verbose_name_plural = 'Receitas das Aulas'
-        unique_together = ('id_aula', 'id_receita')
+        unique_together = ('aula', 'receita')
         indexes = (
-            models.Index(fields=('id_aula',)),
-            models.Index(fields=('id_receita',)),
+            models.Index(fields=('aula',)),
+            models.Index(fields=('receita',)),
         )
         db_table = 'aulareceita'
 
@@ -211,24 +254,27 @@ class Aula(Base):
     data = models.DateField(blank=False, null=False, db_comment='Data da aula')
     turno = models.CharField(max_length=1, blank=False, null=False,
                              db_comment='Turno da aula', choices=TURNO_CHOICE)
-    id_disciplina = models.ForeignKey(Disciplina, on_delete=models.RESTRICT,
-                                      db_comment='Ligação com a tabela de disciplina')
-    id_professor = models.ForeignKey(Professor, on_delete=models.RESTRICT,
-                                      db_comment='Ligação com a tabela de professor')
-    id_laboratorio = models.ForeignKey(Laboratorio, on_delete=models.RESTRICT,
-                                      db_comment='Ligação com a tabela de laboratorio')
+    disciplina = models.ForeignKey(Disciplina, on_delete=models.RESTRICT,
+                                   db_comment='Ligação com a tabela de disciplina')
+    professor = models.ForeignKey(Professor, on_delete=models.RESTRICT,
+                                  db_comment='Ligação com a tabela de professor')
+    laboratorio = models.ForeignKey(Laboratorio, on_delete=models.RESTRICT,
+                                    db_comment='Ligação com a tabela de laboratorio')
     qtd_aluno = models.IntegerField(blank=False, null=False,
                                     db_comment='Número de alunos previsto')
     receitas = models.ManyToManyField('Receita', through='AulaReceita')
 
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + "Disciplina: " + str(self.disciplina) + ", Data: " + str(self.data) + ", Turno: " + str(self.turno)
+
     class Meta:
         verbose_name = 'Aula'
         verbose_name_plural = 'Aulas'
-        unique_together = ('data', 'turno', 'id_professor')
+        unique_together = ('data', 'turno', 'professor')
         indexes = (
-            models.Index(fields=('id_disciplina',)),
-            models.Index(fields=('id_professor',)),
-            models.Index(fields=('id_laboratorio',)),
+            models.Index(fields=('disciplina',)),
+            models.Index(fields=('professor',)),
+            models.Index(fields=('laboratorio',)),
         )
         db_table = 'aula'
 
@@ -239,17 +285,20 @@ class Movimento(Base):
         ('S', 'Saída'),
         ('A', 'Ajuste de auditoria'),
     )
-    id_produto = models.ForeignKey(Produto, on_delete=models.RESTRICT,
-                                      db_comment='Ligação com a tabela de produto')
+    produto = models.ForeignKey(Produto, on_delete=models.RESTRICT,
+                                db_comment='Ligação com a tabela de produto')
     tipo = models.CharField(max_length=1, blank=False, null=False,
-                             db_comment='Tipo do movimento', choices=TIPO_CHOICE)
-    quantidade = models.IntegerField(blank=False, null=False,
-                                    db_comment='Quantidade movimentada')
+                            db_comment='Tipo do movimento', choices=TIPO_CHOICE)
+    quantidade = models.DecimalField(blank=False, null=False, max_digits=9, decimal_places=2,
+                                     db_comment='Quantidade movimentada')
+
+    def __str__(self):
+        return str(self.id).rjust(7, ' ') + " - " + str(self.tipo) + ", Quantidade: " + str(self.quantidade) + ", Produto: " + str(self.id_produto)
 
     class Meta:
         verbose_name = 'Movimento'
         verbose_name_plural = 'Movimentos'
         indexes = (
-            models.Index(fields=('id_produto',)),
+            models.Index(fields=('produto',)),
         )
         db_table = 'movimento'

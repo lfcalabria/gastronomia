@@ -5,8 +5,9 @@ from .models import *
 @admin.register(ReceitaIngrediente)
 class ReceitaIngredienteAdmin(admin.ModelAdmin):
     list_display = (
-        'id_receita',
-        'id_produto',
+        'id',
+        'receita',
+        'produto',
         'quantidade',
         'data_criacao',
         'data_ateracao',
@@ -16,6 +17,7 @@ class ReceitaIngredienteAdmin(admin.ModelAdmin):
 @admin.register(TipoCulinaria)
 class TipoCulinariaAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'nome',
         'data_criacao',
         'data_ateracao',
@@ -25,8 +27,9 @@ class TipoCulinariaAdmin(admin.ModelAdmin):
 @admin.register(Receita)
 class ReceitaAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'nome',
-        'id_tipo',
+        'tipo',
         'data_criacao',
         'data_ateracao',
         'ativo',
@@ -35,6 +38,7 @@ class ReceitaAdmin(admin.ModelAdmin):
 @admin.register(UnidadeMedida)
 class UnidadeMedidaAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'sigla',
         'descricao',
         'data_criacao',
@@ -45,9 +49,10 @@ class UnidadeMedidaAdmin(admin.ModelAdmin):
 @admin.register(Produto)
 class ProdutoAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'nome',
         'quantidade',
-        'id_unidade',
+        'unidade',
         'data_criacao',
         'data_ateracao',
         'ativo',
@@ -56,7 +61,7 @@ class ProdutoAdmin(admin.ModelAdmin):
 @admin.register(Preco)
 class PrecoAdmin(admin.ModelAdmin):
     list_display = (
-        'id_produto',
+        'produto',
         'data_cotacao',
         'valor',
         'data_criacao',
@@ -96,7 +101,7 @@ class NotaFiscalAdmin(admin.ModelAdmin):
     list_display = (
         'data_emissao',
         'valor',
-        'id_fornecedor',
+        'fornecedor',
         'data_criacao',
         'data_ateracao',
         'ativo',
@@ -115,8 +120,8 @@ class LaboratorioAdmin(admin.ModelAdmin):
 @admin.register(AulaReceita)
 class AulaReceitaAdmin(admin.ModelAdmin):
     list_display = (
-        'id_aula',
-        'id_receita',
+        'aula',
+        'receita',
         'qtd_receita',
         'data_criacao',
         'data_ateracao',
@@ -128,9 +133,9 @@ class AulaAdmin(admin.ModelAdmin):
     list_display = (
         'data',
         'turno',
-        'id_disciplina',
-        'id_professor',
-        'id_laboratorio',
+        'disciplina',
+        'professor',
+        'laboratorio',
         'qtd_aluno',
         'data_criacao',
         'data_ateracao',
@@ -140,7 +145,7 @@ class AulaAdmin(admin.ModelAdmin):
 @admin.register(Movimento)
 class MovimentoAdmin(admin.ModelAdmin):
     list_display = (
-        'id_produto',
+        'produto',
         'tipo',
         'quantidade',
         'data_criacao',
