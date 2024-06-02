@@ -1,108 +1,212 @@
-import pandas as pd
-from django_pandas.io import read_frame
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from datetime import date, timedelta
+from dateutil.parser import parse
+from django.db import transaction
+from django.utils.dateparse import parse_date
+from rest_framework import viewsets, status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import *
+from .funcoes import *
+from django.shortcuts import render
+
+
+def index(request):
+    context = {"dados":'Apis para o sistema de Controle de Produtos paras as aulas de Gastronomia'}
+    return render(request, 'index.html', context)
 
 
 class ReceitaIngredienteViewSet(viewsets.ModelViewSet):
-    queryset = ReceitaIngrediente.objects.all()
+    queryset = ReceitaIngrediente.objects.filter(ativo=True)
     serializer_class = ReceitaIngredienteSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class TipoCulinariaViewSet(viewsets.ModelViewSet):
-    queryset = TipoCulinaria.objects.all()
+    queryset = TipoCulinaria.objects.filter(ativo=True)
     serializer_class = TipoCulinariaSerializer
 
-    @action(detail=True, methods=('get',))
-    def receitas(self, request, pk=None):
-        id_tipo = self.get_object()
-        serializer = ReceitaSerializer(id_tipo.tipoculinara.all(), many=True)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class ReceitaViewSet(viewsets.ModelViewSet):
-    queryset = Receita.objects.all()
+    queryset = Receita.objects.filter(ativo=True)
     serializer_class = ReceitaSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class UnidadeMedidaViewSet(viewsets.ModelViewSet):
-    queryset = UnidadeMedida.objects.all()
+    queryset = UnidadeMedida.objects.filter(ativo=True)
     serializer_class = UnidadeMedidaSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
-    queryset = Produto.objects.all()
+    queryset = Produto.objects.filter(quantidade__gt=0) | Produto.objects.filter(ativo=True)
     serializer_class = ProdutoSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class PrecoViewSet(viewsets.ModelViewSet):
-    queryset = Preco.objects.all()
+    queryset = Preco.objects.filter(ativo=True)
     serializer_class = PrecoSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class ProfessorViewSet(viewsets.ModelViewSet):
-    queryset = Professor.objects.all()
+    queryset = Professor.objects.filter(ativo=True)
     serializer_class = ProfessorSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class DisciplinaViewSet(viewsets.ModelViewSet):
-    queryset = Disciplina.objects.all()
+    """
+    Cadastro de Disciplinas
+    """
+    queryset = Disciplina.objects.filter(ativo=True)
     serializer_class = DisciplinaSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class FornecedorViewSet(viewsets.ModelViewSet):
-    queryset = Fornecedor.objects.all()
+    queryset = Fornecedor.objects.filter(ativo=True)
     serializer_class = FornecedorSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
 
-class NotaFiscalViewSet(viewsets.ModelViewSet):
-    queryset = NotaFiscal.objects.all()
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
+
+
+class NotaFiscalViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = NotaFiscal.objects.filter(ativo=True)
     serializer_class = NotaFiscalSerializer
 
 
+class ItemNotaFiscalViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ItemNotaFiscal.objects.filter(ativo=True)
+    serializer_class = ItemNotaFicalSerializer
+
+
 class LaboratorioViewSet(viewsets.ModelViewSet):
-    queryset = Laboratorio.objects.all()
+    queryset = Laboratorio.objects.filter(ativo=True)
     serializer_class = LaboratorioSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class AulaReceitaViewSet(viewsets.ModelViewSet):
-    queryset = AulaReceita.objects.all()
+    queryset = AulaReceita.objects.filter(ativo=True)
     serializer_class = AulaReceitaSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
 
 
 class AulaViewSet(viewsets.ModelViewSet):
-    queryset = Aula.objects.all()
+    queryset = Aula.objects.filter(ativo=True)
     serializer_class = AulaSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.validated_data.pop('confirmada', None)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MovimentoViewSet(viewsets.ModelViewSet):
-    queryset = Movimento.objects.all()
+    queryset = Movimento.objects.filter(ativo=True)
     serializer_class = MovimentoSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
+
     def create(self, request, *args, **kwargs):
-
-        produto_queryset = Produto.objects.filter(id=request.data['id_produto'])
-        quantidade_entrada = float(request.data['quantidade'])
-        quantidade_produto = produto_queryset[0].quantidade
-        if request.data['tipo'] == 'E' or request.data['tipo'] == 'A':
-            quantidade_produto = float(quantidade_produto) + float(quantidade_entrada)
+        produto_id = request.data['produto']
+        quantidade = request.data['quantidade']
+        tipo = request.data['tipo']
+        if tipo.upper() == 'S':
+            return Response('Saída de prodúto só por confirmação de aula', status=status.HTTP_400_BAD_REQUEST)
+        if tipo.upper() == 'E':
+            return Response('Entrada de prodúto deve ser feita pela nota fiscal ou po devolução de material', status=status.HTTP_400_BAD_REQUEST)
+        movimenta = movimentaproduto(produto_id, tipo, quantidade)
+        if movimenta:
+            return Response('Movimentação realizada com sucesso', status=status.HTTP_201_CREATED)
         else:
-            quantidade_produto = float(quantidade_produto) - float(quantidade_entrada)
-        produto_serializer = ProdutoSerializer(produto_queryset, many=True)
-        produto_data = produto_serializer.data
-        produto_data[0]['quantidade'] = quantidade_produto
-        produto = Produto.objects.get(id=request.data['id_produto'])
-        produto.quantidade = produto_data[0]['quantidade']
-        produto.save()
-
-        movimento_serializer = self.get_serializer(data=request.data)
-        movimento_serializer.is_valid(raise_exception=True)
-        self.perform_create(movimento_serializer)
-        headers = self.get_success_headers(movimento_serializer.data)
-        return Response(movimento_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            return Response('Falha ao movimentar o produto', status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustoDiarioApiView(APIView):
@@ -110,26 +214,16 @@ class CustoDiarioApiView(APIView):
     Custo por dia de aula prática
     """
 
-    def __ultimas_cinco(self, group):
-        """
-
-        :param group: coluna de agrupamento
-        :return: as 5 maiores de caga agrupamento
-        """
-        return group.head(5)
-
     def get(self, request):
         aulas = Aula.objects.all()
         df_aula = read_frame(aulas)
-        aulas_receita = AulaReceita.objects.all()
+        aulas_receita = AulaReceita.objects.filter(aula__in=aulas, ativo=True)
         df_aulas_receita = read_frame(aulas_receita)
-        df_aulas_receita['receita'] = df_aulas_receita['receita'].str.slice(0, 7)
-        df_aulas_receita['receita'] = df_aulas_receita['receita'].astype(int)
-        df_aulas_receita['aula'] = df_aulas_receita['aula'].str.slice(0, 7)
-        df_aulas_receita['aula'] = df_aulas_receita['aula'].astype(int)
+        df_aulas_receita['id_aula'] = aulas_receita.values_list('aula_id', flat=True)
+        df_aulas_receita['id_receita'] = aulas_receita.values_list('receita_id', flat=True)
         df_custo = pd.merge(df_aula, df_aulas_receita, left_on=['id'],
-                            right_on=['aula'], how='left')
-        colunas = ['data', 'qtd_receita', 'receita']
+                            right_on=['id_aula'], how='left')
+        colunas = ['data', 'qtd_receita', 'id_receita']
         df_custo = df_custo[colunas]
         del aulas
         del aulas_receita
@@ -137,30 +231,21 @@ class CustoDiarioApiView(APIView):
         del df_aulas_receita
         receitas_ingrediente = ReceitaIngrediente.objects.all()
         df_receitas_ingrediente = read_frame(receitas_ingrediente)
-        df_receitas_ingrediente['receita'] = df_receitas_ingrediente['receita'].str.slice(0, 7)
-        df_receitas_ingrediente['receita'] = df_receitas_ingrediente['receita'].astype(int)
-        df_receitas_ingrediente['produto'] = df_receitas_ingrediente['produto'].str.slice(0, 7)
-        df_receitas_ingrediente['produto'] = df_receitas_ingrediente['produto'].astype(int)
-        df_custo = pd.merge(df_custo, df_receitas_ingrediente, left_on=['receita'],
-                            right_on=['receita'], how='left')
+        df_receitas_ingrediente['id_produto'] = receitas_ingrediente.values_list('produto_id', flat=True)
+        df_receitas_ingrediente['id_receita'] = receitas_ingrediente.values_list('receita_id', flat=True)
+        df_custo = pd.merge(df_custo, df_receitas_ingrediente, left_on=['id_receita'],
+                            right_on=['id_receita'], how='left')
         df_custo['qtd'] = df_custo['qtd_receita'] * df_custo['quantidade']
-        colunas = ['data', 'qtd', 'produto']
+        colunas = ['data', 'qtd', 'id_produto']
         df_custo = df_custo[colunas]
-        df_custo = df_custo.groupby(['data', 'produto'])['qtd'].aggregate(['sum'])
+        df_custo = df_custo.groupby(['data', 'id_produto'])['qtd'].aggregate(['sum'])
         df_custo = df_custo.reset_index()
         del receitas_ingrediente
         del df_receitas_ingrediente
         precos = Preco.objects.all()
-        df_precos = read_frame(precos)
-        df_precos['produto'] = df_precos['produto'].str.slice(0, 7)
-        df_precos['produto'] = df_precos['produto'].astype(int)
-        df_precos = df_precos.sort_values(by='data_cotacao', ascending=False)
-        df_precos = df_precos.groupby('produto').apply(self.__ultimas_cinco)
-        print(df_precos.columns)
-        df_precos.columns = ['id', 'data_criacao', 'data_ateracao', 'ativo', 'id_prod','data_cotacao', 'valor']
-        df_precos = df_precos.groupby(['id_prod'])['valor'].aggregate(['mean'])
-        df_precos = df_precos.reset_index()
-        df_custo = pd.merge(df_custo, df_precos, left_on=['produto'],
+        df_precos = precomedio(precos)
+        print(df_precos)
+        df_custo = pd.merge(df_custo, df_precos, left_on=['id_produto'],
                             right_on=['id_prod'], how='left')
         df_custo['sum'] = df_custo['sum'].astype(float)
         df_custo['mean'] = df_custo['mean'].astype(float)
@@ -169,6 +254,191 @@ class CustoDiarioApiView(APIView):
         df_custo = df_custo.reset_index()
         df_custo['sum'] = round(df_custo['sum'], 2)
         df_custo.columns = ['data', 'valor']
-        print(df_custo)
         serializer = CustoDiarioSerializer(df_custo.to_dict(orient='records'), many=True)
         return Response(serializer.data)
+
+
+class PosicaoEstoqueApiView(APIView):
+    """
+    Posição do Estque
+    """
+    def get(self, request):
+        df_estoque = posicaoestoque()
+        colunas = ['nome', 'unidade', 'quantidade', 'preco_medio', 'total']
+        df_estoque = df_estoque[colunas]
+        serializer = PosicaoEstoqueSerializer(df_estoque.to_dict(orient='records'), many=True)
+        return Response(serializer.data)
+
+
+class NecessidadeCompraApiView(APIView):
+    def get(self, request, format=None):
+        data = request.query_params.get('data')
+        confirmada = request.query_params.get('data')
+        hoje = date.today()
+        if data is None:
+            data = hoje + timedelta(30)
+        else:
+            try:
+                data = parse(data, dayfirst=True).date()
+                if data < hoje:
+                    return Response("Data não pode ser anterior a data atual", status=status.HTTP_400_BAD_REQUEST)
+            except:
+                return Response("Data inválida", status=status.HTTP_400_BAD_REQUEST)
+        if confirmada == None:
+            confirmada = 'N'
+        if confirmada.upper() == 'S':
+            aulas = Aula.objects.filter(data__range=(hoje, data), confirmada=True)
+        elif confirmada.upper() == 'N':
+            aulas = Aula.objects.filter(data__range=(hoje, data), confirmada=False)
+        else:
+            return Response('confirmada deve ser S ou N', status=status.HTTP_400_BAD_REQUEST)
+        df_aulas = read_frame(aulas)
+        df_aulas_produtos = pd.DataFrame()
+        for dado in df_aulas.itertuples():
+            df_aula_produtos = produtosaula(dado.id)
+            df_aulas_produtos = pd.concat([df_aulas_produtos, df_aula_produtos])
+        colunas = ['id_produto', 'qtd_ingrediente']
+        df_aulas_produtos = df_aulas_produtos[colunas]
+        df_aulas_produtos = df_aulas_produtos.groupby(['id_produto'])['qtd_ingrediente'].aggregate(['sum'])
+        df_aulas_produtos = df_aulas_produtos.reset_index()
+        df_estoque = posicaoestoque(list(df_aulas_produtos.id_produto))
+        df_estoque = pd.merge(df_estoque, df_aulas_produtos, left_on=['id'],
+                              right_on=['id_produto'], how='left')
+        df_estoque.fillna(0, inplace=True)
+        df_estoque['necessidade'] = df_estoque['quantidade'] - df_estoque['sum']
+        df_estoque['custo'] = df_estoque['necessidade'] * df_estoque['preco_medio']
+        df_necessidade = df_estoque.query('necessidade < 0')
+        df_necessidade['necessidade'] = df_necessidade['necessidade'] * -1
+        df_necessidade['custo'] = df_necessidade['custo'] * -1
+        colunas = ['nome', 'unidade', 'necessidade', 'custo']
+        df_necessidade = df_necessidade[colunas]
+        df_necessidade.columns = ['produto', 'unidade', 'quntidade', 'custo']
+        serializer = NecessidadeCompraSerializer(df_necessidade.to_dict(orient='records'), many=True)
+        return Response(serializer.data)
+
+
+class DetalhesAulaApiView(generics.RetrieveAPIView):
+    serializer_class = AulaSerializer
+    queryset = Aula.objects.select_related(
+            'disciplina',
+            'professor',
+            'laboratorio',
+        )
+
+    def get(self, request, *args, **kwargs):
+        aula = self.get_object()
+
+        # ************************************
+        # Informações da aula
+        # ************************************
+        dados = aula.__dict__
+        df_aula = pd.DataFrame([dados])
+        df_aula['professor'] = aula.professor
+        df_aula['disciplina'] = aula.disciplina
+        df_aula['laboratorio'] = aula.laboratorio
+        colunas = ['id', 'data', 'turno', 'qtd_aluno', 'confirmada', 'professor',
+                   'disciplina', 'laboratorio']
+        df_aula = df_aula[colunas]
+        del dados
+        df_receitas = receitasaula(aula.id)
+        df_produto = produtosaula(aula.id)
+        colunas = ['ingrediente', 'unidade', 'qtd_ingrediente', 'custo']
+        df_produto = df_produto[colunas]
+        colunas = ['receita', 'tipoculinaria', 'qtd_receita']
+        df_receitas = df_receitas[colunas]
+        dict_receita = df_receitas.to_dict(orient='records')
+        dict_produto = df_produto.to_dict(orient='records')
+        item_receita = ReceitaItemSerializer(dict_receita, many=True)
+        item_produto = ProdutoItemSerializer(dict_produto, many=True)
+        detalhe = df_aula.to_dict(orient='records')
+        detalhe[0]['receitas'] = item_receita.data
+        detalhe[0]['produtos'] = item_produto.data
+        serializer = DetalheAulaSerializer(detalhe[0])
+        return Response(serializer.data)
+
+
+class ConfirmaAulaApiView(generics.UpdateAPIView):
+    queryset = Aula.objects.all()
+    serializer_class = AulaSerializer
+
+    def put(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def perform_update(self, serializer):
+        serializer.validated_data['usuario'] = str(self.request.user)
+        serializer.save()
+
+    @transaction.atomic
+    def partial_update(self, request, *args, **kwargs):
+        aula = self.get_object()
+        if aula.confirmada:
+            return Response("Aula já confirmada", status=status.HTTP_400_BAD_REQUEST)
+        produtos = produtosaula(aula.id)
+        for dado in produtos.itertuples():
+            movimento = movimentaproduto(dado.id_produto, 'S', dado.qtd_ingrediente, self.request.user)
+        aula.confirmada = True
+        aula.usuario = self.request.user
+        aula.save()
+        return Response("Aula confirmada com sucesso", status=status.HTTP_200_OK)
+
+
+class CancelaAulaApiView(generics.UpdateAPIView):
+    queryset = Aula.objects.all()
+    serializer_class = AulaSerializer
+
+    def put(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @transaction.atomic
+    def partial_update(self, request, *args, **kwargs):
+        aula = self.get_object()
+        if not aula.confirmada:
+            return Response("Aula não confirmada", status=status.HTTP_400_BAD_REQUEST)
+        produtos = produtosaula(aula.id)
+        for dado in produtos.itertuples():
+            movimento = movimentaproduto(dado.id_produto, 'E', dado.qtd_ingrediente, self.request.user)
+        aula.confirmada = False
+        aula.usuario = self.request.user
+        aula.save()
+        serializer = AulaSerializer(aula)
+        return Response("Aula cancelada com sucesso", status=status.HTTP_200_OK)
+
+
+class EntradaNotaFiscalApiView(generics.CreateAPIView):
+    queryset = None
+    serializer_class = EntradaNotaFiscalSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            hoje = date.today()
+            data_emissao = parse_date(request.data.get('notafiscal', {}).get('data_emissao'))
+            if data_emissao and data_emissao > hoje:
+                return Response("Não é possível cadastrar Nota Fiscal no Futuro",
+                                status=status.HTTP_400_BAD_REQUEST)
+            produtos = request.data.get('produtos', [])
+            if len(produtos) == 0:
+                return Response("Tem que ser informado ao menos um produto",
+                                status=status.HTTP_400_BAD_REQUEST)
+            nota_serializer = NotaFiscalSerializer(data=request.data.get('notafiscal', {}))
+            if nota_serializer.is_valid(raise_exception=True):
+                with transaction.atomic():
+                    nota_serializer.validated_data['usuario'] = str(self.request.user)
+                    nota = nota_serializer.save()
+                    for produto in produtos:
+                        produto['notafiscal'] = nota.id
+                        item_serializer = ItemNotaFicalSerializer(data=produto)
+                        if item_serializer.is_valid(raise_exception=True):
+                            item_serializer.validated_data['usuario'] = str(self.request.user)
+                            item_serializer.save()
+                            movimento = movimentaproduto(produto['produto'], 'E',
+                                                         produto['quantidade'],
+                                                         str(self.request.user))
+                            preco_dict = {"produto": produto['produto'], "data_cotacao": data_emissao,
+                                          "valor": produto['preco_unitario']}
+                            preco_serializer = PrecoSerializer(data=preco_dict)
+                            if preco_serializer.is_valid(raise_exception=True):
+                                preco_serializer.validated_data['usuario'] = str(self.request.user)
+                                preco_serializer.save()
+                    return Response("Nota Fiscal criada com sucesso", status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

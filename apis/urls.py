@@ -17,7 +17,16 @@ router.register('receitasaula', AulaReceitaViewSet)
 router.register('aulas', AulaViewSet)
 router.register('movimentos', MovimentoViewSet)
 router.register('notasfiscais', NotaFiscalViewSet)
+router.register('itensnotasfiscais', ItemNotaFiscalViewSet)
+
 
 urlpatterns = [
-    path('', CustoDiarioApiView.as_view(), name='custosdiario'),
+    path("", index),
+    path('custosdiario/', CustoDiarioApiView.as_view(), name='custosdiario'),
+    path('posicaoestoque/', PosicaoEstoqueApiView.as_view(), name='posicaoestoque'),
+    path('confirmaaula/<int:pk>/', ConfirmaAulaApiView.as_view(), name='confirmaaula'),
+    path('cancelaaula/<int:pk>/', CancelaAulaApiView.as_view(), name='cancelaaula'),
+    path('detalhesaula/<int:pk>/', DetalhesAulaApiView.as_view(), name='detalhesaula'),
+    path('necessidadecompra/', NecessidadeCompraApiView.as_view(), name='necessidadecompra'),
+    path('entradanota/', EntradaNotaFiscalApiView.as_view(), name='entradanota'),
 ]

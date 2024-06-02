@@ -5,6 +5,7 @@ class Base(models.Model):
     data_criacao = models.DateTimeField(auto_now_add=True, db_comment='Momento da criação do dado')
     data_ateracao = models.DateTimeField(auto_now=True, db_comment='momento da atualização do dado')
     ativo = models.BooleanField(default=True, db_comment='Indicador se o dado ainda está ativo')
+    usuario = models.CharField(max_length=50, null=False, blank=False, editable=False)
 
     class Meta:
         abstract = True
@@ -20,7 +21,7 @@ class ReceitaIngrediente(Base):
                                      )
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + "Receita:" + str(self.receita) + ", Produto:" + str(self.produto)
+        return "Receita:" + str(self.receita) + ", Produto:" + str(self.produto)
 
     class Meta:
         verbose_name = 'Ingrediente da Receita'
@@ -38,7 +39,7 @@ class TipoCulinaria(Base):
                             db_comment='Nome do tipo de culinária')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + self.nome
+        return self.nome
 
     class Meta:
         verbose_name = 'Tipo de Culinária'
@@ -47,6 +48,7 @@ class TipoCulinaria(Base):
             models.Index(fields=('nome',)),
         )
         db_table = 'tipoculinaria'
+        ordering = ['nome']
 
 
 class Receita(Base):
@@ -58,7 +60,7 @@ class Receita(Base):
     ingredientes = models.ManyToManyField('Produto', through='ReceitaIngrediente')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + self.nome
+        return self.nome
 
     class Meta:
         verbose_name = 'Receita'
@@ -69,6 +71,7 @@ class Receita(Base):
             models.Index(fields=('tipo',)),
         )
         db_table = 'receita'
+        ordering = ['nome']
 
 
 class UnidadeMedida(Base):
@@ -78,7 +81,7 @@ class UnidadeMedida(Base):
                                  db_comment='Descrição da unidade de medida')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + str(self.sigla) + ' - ' + str(self.descricao)
+        return str(self.sigla) + ' - ' + str(self.descricao)
 
     class Meta:
         verbose_name = 'Unidade de Medida'
@@ -87,6 +90,7 @@ class UnidadeMedida(Base):
             models.Index(fields=('sigla',)),
         )
         db_table = 'unidademedida'
+        ordering = ['sigla']
 
 
 class Produto(Base):
@@ -99,7 +103,7 @@ class Produto(Base):
     receitas = models.ManyToManyField('Receita', through='ReceitaIngrediente')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + self.nome
+        return self.nome
 
     class Meta:
         verbose_name = 'Produto'
@@ -109,6 +113,7 @@ class Produto(Base):
             models.Index(fields=('unidade',)),
         )
         db_table = 'produto'
+        ordering = ['nome']
 
 
 class Preco(Base):
@@ -116,12 +121,12 @@ class Preco(Base):
                                 db_comment='ligação com tabela de produto')
     data_cotacao = models.DateField(blank=False, null=False,
                                     db_comment='Data Cotação')
-    valor = models.DecimalField(max_digits=9, decimal_places=2,
+    valor = models.DecimalField(max_digits=9, decimal_places=2, default=0,
                                 db_comment='Valor cotado por unidade de medida',
                                 )
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + "Produto: " + str(self.produto) + ", Data: " + str(self.data_cotacao) + ', Valor R$' + str(self.valor)
+        return "Produto: " + str(self.produto) + ", Data: " + str(self.data_cotacao) + ', Valor R$' + str(self.valor)
 
     class Meta:
         verbose_name = 'Preço'
@@ -130,6 +135,7 @@ class Preco(Base):
             models.Index(fields=('produto',)),
         )
         db_table = 'preco'
+        ordering = ['produto']
 
 
 class Professor(Base):
@@ -137,7 +143,7 @@ class Professor(Base):
                             db_comment='Nome do professor')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + self.nome
+        return self.nome
 
     class Meta:
         verbose_name = 'Professor'
@@ -146,6 +152,7 @@ class Professor(Base):
             models.Index(fields=('nome',)),
         )
         db_table = 'professor'
+        ordering = ['nome']
 
 
 class Disciplina(Base):
@@ -153,7 +160,7 @@ class Disciplina(Base):
                             db_comment='Nome da disciplina')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + self.nome
+        return self.nome
 
     class Meta:
         verbose_name = 'Disciplina'
@@ -162,6 +169,7 @@ class Disciplina(Base):
             models.Index(fields=('nome',)),
         )
         db_table = 'disciplina'
+        ordering = ['nome']
 
 
 class Fornecedor(Base):
@@ -169,7 +177,7 @@ class Fornecedor(Base):
                             db_comment='Nome do fornecedor')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + self.nome
+        return self.nome
 
     class Meta:
         verbose_name = 'Fornecedor'
@@ -178,6 +186,7 @@ class Fornecedor(Base):
             models.Index(fields=('nome',)),
         )
         db_table = 'fornecedor'
+        ordering = ['nome']
 
 
 class NotaFiscal(Base):
@@ -191,7 +200,7 @@ class NotaFiscal(Base):
                                    db_comment='ligacao com a tabela de fornecedor')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + "Nota Fiscal: " + str(self.id)
+        return "Nota Fiscal: " + str(self.id)
 
     class Meta:
         verbose_name = 'Nota Fiscal'
@@ -200,6 +209,36 @@ class NotaFiscal(Base):
             models.Index(fields=('fornecedor',)),
         )
         db_table = 'notafiscal'
+        ordering = ['data_emissao']
+
+
+class ItemNotaFiscal(Base):
+    notafiscal = models.ForeignKey(NotaFiscal, on_delete=models.RESTRICT,
+                                   db_comment='ligacao com a tabela de nota fiscal')
+    produto = models.ForeignKey(Produto, on_delete=models.RESTRICT,
+                                   db_comment='ligacao com a tabela de produtos')
+    preco_unitario = models.DecimalField(max_digits=9, decimal_places=2,
+                                db_comment='preço unitário do produto',
+                                blank=False, null=False
+                                )
+    quantidade = models.DecimalField(max_digits=11, decimal_places=5,
+                                     db_comment='Quantidade comprada',
+                                     blank=False, null=False
+                                     )
+
+    def __str__(self):
+        return "Nota Fiscal: " + str(self.notafiscal) + ", Produto: " + str(self.produto)
+
+    class Meta:
+        verbose_name = 'Item da Nota Fiscal'
+        verbose_name_plural = 'Itens da Notas Fiscais'
+        indexes = (
+            models.Index(fields=('notafiscal',)),
+            models.Index(fields=('produto',)),
+        )
+        db_table = 'itemnotafiscal'
+        ordering = ['notafiscal', 'produto']
+        unique_together = ['notafiscal', 'produto']
 
 
 class Laboratorio(Base):
@@ -209,7 +248,7 @@ class Laboratorio(Base):
                                    db_comment='Localização do laboratório')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + self.nome
+        return self.nome
 
     class Meta:
         verbose_name = 'Laboratório'
@@ -218,6 +257,7 @@ class Laboratorio(Base):
             models.Index(fields=('nome',)),
         )
         db_table = 'laboratorio'
+        ordering = ['nome']
 
 
 class AulaReceita(Base):
@@ -230,7 +270,7 @@ class AulaReceita(Base):
                                       db_comment='Quantidade de receitas previstas para a aula')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + "Receita: " + str(self.receita) + ", Aula: " + str(self.aula)
+        return "Receita: " + str(self.receita) + ", Aula: " + str(self.aula)
 
     class Meta:
         verbose_name = 'Receita da Aula'
@@ -262,10 +302,11 @@ class Aula(Base):
                                     db_comment='Ligação com a tabela de laboratorio')
     qtd_aluno = models.IntegerField(blank=False, null=False,
                                     db_comment='Número de alunos previsto')
+    confirmada = models.BooleanField(blank=False, null=False, default=False)
     receitas = models.ManyToManyField('Receita', through='AulaReceita')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + "Disciplina: " + str(self.disciplina) + ", Data: " + str(self.data) + ", Turno: " + str(self.turno)
+        return "Disciplina: " + str(self.disciplina) + ", Data: " + str(self.data) + ", Turno: " + str(self.turno)
 
     class Meta:
         verbose_name = 'Aula'
@@ -277,6 +318,7 @@ class Aula(Base):
             models.Index(fields=('laboratorio',)),
         )
         db_table = 'aula'
+        ordering = ['data', 'turno', 'disciplina']
 
 
 class Movimento(Base):
@@ -284,6 +326,7 @@ class Movimento(Base):
         ('E', 'Entrada'),
         ('S', 'Saída'),
         ('A', 'Ajuste de auditoria'),
+        ('D', 'Devolução'),
     )
     produto = models.ForeignKey(Produto, on_delete=models.RESTRICT,
                                 db_comment='Ligação com a tabela de produto')
@@ -293,7 +336,7 @@ class Movimento(Base):
                                      db_comment='Quantidade movimentada')
 
     def __str__(self):
-        return str(self.id).rjust(7, ' ') + " - " + str(self.tipo) + ", Quantidade: " + str(self.quantidade) + ", Produto: " + str(self.id_produto)
+        return str(self.tipo) + ", Quantidade: " + str(self.quantidade) + ", Produto: " + str(self.produto)
 
     class Meta:
         verbose_name = 'Movimento'
@@ -302,3 +345,4 @@ class Movimento(Base):
             models.Index(fields=('produto',)),
         )
         db_table = 'movimento'
+        ordering = ['produto', 'tipo']
