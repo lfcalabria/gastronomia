@@ -198,11 +198,12 @@ class MovimentoViewSet(viewsets.ModelViewSet):
         produto_id = request.data['produto']
         quantidade = request.data['quantidade']
         tipo = request.data['tipo']
+        user = str(self.request.user)
         if tipo.upper() == 'S':
             return Response('Saída de prodúto só por confirmação de aula', status=status.HTTP_400_BAD_REQUEST)
         if tipo.upper() == 'E':
             return Response('Entrada de prodúto deve ser feita pela nota fiscal ou po devolução de material', status=status.HTTP_400_BAD_REQUEST)
-        movimenta = movimentaproduto(produto_id, tipo, quantidade)
+        movimenta = movimentaproduto(produto_id, tipo, quantidade, user)
         if movimenta:
             return Response('Movimentação realizada com sucesso', status=status.HTTP_201_CREATED)
         else:
