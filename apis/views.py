@@ -2,9 +2,11 @@ from datetime import date, timedelta
 from dateutil.parser import parse
 from django.db import transaction
 from django.utils.dateparse import parse_date
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from .permissions import IsInAuthorizedGroup
 from .serializers import *
 from .funcoes import *
 from django.shortcuts import render
@@ -127,11 +129,13 @@ class FornecedorViewSet(viewsets.ModelViewSet):
 
 
 class NotaFiscalViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (permissions.DjangoModelPermissions,)
     queryset = NotaFiscal.objects.filter(ativo=True)
     serializer_class = NotaFiscalSerializer
 
 
 class ItemNotaFiscalViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (permissions.DjangoModelPermissions,)
     queryset = ItemNotaFiscal.objects.filter(ativo=True)
     serializer_class = ItemNotaFicalSerializer
 
@@ -245,7 +249,6 @@ class CustoDiarioApiView(APIView):
         del df_receitas_ingrediente
         precos = Preco.objects.all()
         df_precos = precomedio(precos)
-        print(df_precos)
         df_custo = pd.merge(df_custo, df_precos, left_on=['id_produto'],
                             right_on=['id_prod'], how='left')
         df_custo['sum'] = df_custo['sum'].astype(float)
@@ -260,6 +263,7 @@ class CustoDiarioApiView(APIView):
 
 
 class PosicaoEstoqueApiView(APIView):
+    permission_classes = (permissions.BasePermission,)
     """
     Posição do Estque
     """
@@ -272,6 +276,8 @@ class PosicaoEstoqueApiView(APIView):
 
 
 class NecessidadeCompraApiView(APIView):
+    permission_classes = (IsInAuthorizedGroup, permissions.BasePermission,)
+
     def get(self, request, format=None):
         data = request.query_params.get('data')
         confirmada = request.query_params.get('data')
@@ -326,6 +332,7 @@ class DetalhesAulaApiView(generics.RetrieveAPIView):
             'laboratorio',
         )
 
+
     def get(self, request, *args, **kwargs):
         aula = self.get_object()
 
@@ -377,6 +384,11 @@ class ConfirmaAulaApiView(generics.UpdateAPIView):
         produtos = produtosaula(aula.id)
         for dado in produtos.itertuples():
             movimento = movimentaproduto(dado.id_produto, 'S', dado.qtd_ingrediente, self.request.user)
+            movimento_dict = {"produto": dado.id_produto, "tipo": "S", "quantidade": dado.qtd_ingrediente}
+            movimento_serializer = MovimentoSerializer(data=movimento_dict)
+            if movimento_serializer.is_valid(raise_exception=True):
+                movimento_serializer.validated_data['usuario'] = str(self.request.user)
+                movimento_serializer.save()
         aula.confirmada = True
         aula.usuario = self.request.user
         aula.save()
@@ -398,6 +410,11 @@ class CancelaAulaApiView(generics.UpdateAPIView):
         produtos = produtosaula(aula.id)
         for dado in produtos.itertuples():
             movimento = movimentaproduto(dado.id_produto, 'E', dado.qtd_ingrediente, self.request.user)
+            movimento_dict = {"produto": dado.id_produto, "tipo": "E", "quantidade": dado.qtd_ingrediente}
+            movimento_serializer = MovimentoSerializer(data=movimento_dict)
+            if movimento_serializer.is_valid(raise_exception=True):
+                movimento_serializer.validated_data['usuario'] = str(self.request.user)
+                movimento_serializer.save()
         aula.confirmada = False
         aula.usuario = self.request.user
         aula.save()
@@ -420,9 +437,25 @@ class EntradaNotaFiscalApiView(generics.CreateAPIView):
             if len(produtos) == 0:
                 return Response("Tem que ser informado ao menos um produto",
                                 status=status.HTTP_400_BAD_REQUEST)
+            prodid = [produto["produto"] for produto in produtos]
+            prods = Produto.objects.filter(id__in = prodid)
+            prods1 = prods.values_list('id', flat=True)
+            prods1 = set(prods1)
+            prodid = set(prodid)
+            if len(prodid - prods1) != 0:
+                return Response("Os produtos" + str(prodid - prods1) + "não estão cadastrados",
+                                status=status.HTTP_400_BAD_REQUEST)
+            notafiscal = request.data.get('notafiscal')
+            forn_id = notafiscal['fornecedor']
+            fornecedor = Fornecedor.objects.filter(id=forn_id).count()
+            if fornecedor == 0:
+                return Response("Fornecedor não  cadastrado",
+                                status=status.HTTP_400_BAD_REQUEST)
+            valortotal = sum([produto["quantidade"] * produto["preco_unitario"] for produto in produtos])
             nota_serializer = NotaFiscalSerializer(data=request.data.get('notafiscal', {}))
             if nota_serializer.is_valid(raise_exception=True):
                 with transaction.atomic():
+                    nota_serializer.validated_data['valor'] = valortotal
                     nota_serializer.validated_data['usuario'] = str(self.request.user)
                     nota = nota_serializer.save()
                     for produto in produtos:
@@ -434,12 +467,17 @@ class EntradaNotaFiscalApiView(generics.CreateAPIView):
                             movimento = movimentaproduto(produto['produto'], 'E',
                                                          produto['quantidade'],
                                                          str(self.request.user))
-                            preco_dict = {"produto": produto['produto'], "data_cotacao": data_emissao,
-                                          "valor": produto['preco_unitario']}
-                            preco_serializer = PrecoSerializer(data=preco_dict)
-                            if preco_serializer.is_valid(raise_exception=True):
-                                preco_serializer.validated_data['usuario'] = str(self.request.user)
-                                preco_serializer.save()
+                        preco_dict = {"produto": produto['produto'], "data_cotacao": data_emissao,
+                                      "valor": produto['preco_unitario']}
+                        preco_serializer = PrecoSerializer(data=preco_dict)
+                        if preco_serializer.is_valid(raise_exception=True):
+                            preco_serializer.validated_data['usuario'] = str(self.request.user)
+                            preco_serializer.save()
+                        movimento_dict = {"produto": produto['produto'], "tipo": "E", "quantidade": produto['quantidade']}
+                        movimento_serializer = MovimentoSerializer(data=movimento_dict)
+                        if movimento_serializer.is_valid(raise_exception=True):
+                            movimento_serializer.validated_data['usuario'] = str(self.request.user)
+                            movimento_serializer.save()
                     return Response("Nota Fiscal criada com sucesso", status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

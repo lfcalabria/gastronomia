@@ -151,6 +151,7 @@ class DetalheAulaSerializer(serializers.Serializer):
     receitas = ReceitaItemSerializer(many=True)
     produtos = ProdutoItemSerializer(many=True)
 
+
 class NecessidadeCompraSerializer(serializers.Serializer):
     produto = serializers.CharField(max_length=100)
     unidade = serializers.CharField(max_length=200)

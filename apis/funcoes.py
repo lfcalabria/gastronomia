@@ -23,6 +23,7 @@ def precomedio(precos):
     df_precos = df_precos.reset_index()
     return df_precos
 
+
 def receitasaula(aula_id):
     # ************************************
     # Receitas da aula
@@ -44,6 +45,7 @@ def receitasaula(aula_id):
     colunas = ['id_receita', 'receita', 'tipoculinaria', 'qtd_receita']
     df_receitas = df_receitas[colunas]
     return df_receitas
+
 
 def produtosaula(aula_id):
     # ************************************
@@ -80,6 +82,7 @@ def produtosaula(aula_id):
     df_produto = df_produto[colunas]
     return df_produto
 
+
 def movimentaproduto(produto_id, tipo, quantidade, user):
     produto_queryset = Produto.objects.filter(id=produto_id)
     quantidade_entrada = float(quantidade)
@@ -96,6 +99,7 @@ def movimentaproduto(produto_id, tipo, quantidade, user):
     produto.usuario = user
     produto.save()
     return True
+
 
 def posicaoestoque(produto=None):
     if produto == None:

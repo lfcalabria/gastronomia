@@ -332,7 +332,7 @@ class Movimento(Base):
                                 db_comment='Ligação com a tabela de produto')
     tipo = models.CharField(max_length=1, blank=False, null=False,
                             db_comment='Tipo do movimento', choices=TIPO_CHOICE)
-    quantidade = models.DecimalField(blank=False, null=False, max_digits=9, decimal_places=2,
+    quantidade = models.DecimalField(blank=False, null=False, max_digits=9, decimal_places=5,
                                      db_comment='Quantidade movimentada')
 
     def __str__(self):
